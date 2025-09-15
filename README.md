@@ -2,13 +2,17 @@
 
 A simple util function to help clear gmail inbox by category. The idea I applied was to have my important emails labelled, so that I could exclude them from the query to be fed to the gmail API. Customise to your needs
 
-## secret_key encryption
+## Secrets Encryption and decrytion
+
+<b>NOTE:</b> Make sure to not forget your passphrase(set during encryption) - or else this key can't be recovered
+
+### secret_key encryption
 
 ```bash
 openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 10000 -salt -in client_secret.json -out encrypted_client_secret.txt -e
 ```
 
-## secret key decryption
+### secret key decryption
 
 ```bash
 openssl enc -aes-256-cbc -md sha512 -pbkdf2 -in encrypted_client_secret.txt -out client_secret.json -d

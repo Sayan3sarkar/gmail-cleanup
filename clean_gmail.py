@@ -15,16 +15,6 @@ def get_service():
     return build("gmail", "v1", credentials=creds)
 
 
-def list_labels(service):
-    """
-    Util to list available labels
-    """
-    results = service.users().labels().list(userId="me").execute()
-    labels = results.get("labels", [])
-    for label in labels:
-        print(f"{label['name']} (ID: {label['id']})")
-
-
 def construct_query(category: str, exclude_labels: list[str] = []):
     """
     Construct Gmail API filter query
@@ -43,25 +33,19 @@ def delete_category(service, category: str, query: str):
     page_token = None
     total_count = 0
     while True:
-        results = (
-            service.users()
-            .messages()
-            .list(
-                userId="me",
-                q=query,
-                maxResults=1000,
-                pageToken=page_token,
-            )
-            .execute()
-        )
+        results = service.users().messages().list(userId="me",q=query,maxResults=1000,pageToken=page_token).execute()
+        
         messages = results.get("messages", [])
         if not messages:
             print(f"No more emails in {category} ")
             break
 
-        ids = [msg["id"] for msg in messages]
+        ids: list[str] = [msg["id"] for msg in messages]
+
+        # Perform the batch delete
         service.users().messages().batchDelete(userId="me", body={"ids": ids}).execute()
-        print(f"Deleted {len(ids)} emails from {category})...")
+        print(f"Deleted {len(ids)} emails from {category})...") # track deletion
+
         total_count += len(ids)
 
         page_token = results.get("nextPageToken")
@@ -74,17 +58,11 @@ def delete_category(service, category: str, query: str):
 def main():
     category = "updates"
     service = get_service()
-    exclude_labels = [  # Provide as needed
-        "max-life-insurance",
-        "mutual-funds",
-        "github",
-        "aws",
-        "tricog",
-        "whyminds",
-        "tcs",
-    ]
+
+    # Provide as needed
+    exclude_labels = ["max-life-insurance", "mutual-funds", "github", "aws", "tricog", "whyminds", "tcs"]
+    
     delete_category(service, "updates", construct_query(category, exclude_labels))
-    # list_labels(service)
 
 
 if __name__ == "__main__":
